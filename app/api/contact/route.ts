@@ -9,6 +9,8 @@ type ContactPayload = {
   startedAt?: unknown;
 };
 
+type ContactField = "name" | "email" | "subject" | "message";
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function clean(value: unknown, max: number) {
@@ -39,8 +41,14 @@ export async function POST(request: Request) {
   const subject = clean(payload.subject, 120);
   const message = clean(payload.message, 3000);
 
-  if (name.length < 2 || !emailPattern.test(email) || subject.length < 3 || message.length < 20) {
-    return Response.json({ message: "Please complete every field with a valid email and a little more detail." }, { status: 400 });
+  const errors: Partial<Record<ContactField, string>> = {};
+  if (name.length < 2) errors.name = "Please enter at least 2 characters.";
+  if (!emailPattern.test(email)) errors.email = "Please enter a valid email address.";
+  if (subject.length < 3) errors.subject = "Please enter at least 3 characters.";
+  if (!message) errors.message = "Please enter a message.";
+
+  if (Object.keys(errors).length) {
+    return Response.json({ message: "Please check the highlighted fields.", errors }, { status: 400 });
   }
 
   const resendKey = process.env.RESEND_API_KEY;
