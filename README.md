@@ -60,9 +60,8 @@ All variables are optional for local development.
 | `NEXT_PUBLIC_SITE_URL` | Production canonical URL used by metadata, sitemap, and social sharing. |
 | `GITHUB_TOKEN` | Optional server-only GitHub token that increases API limits. Never use a `NEXT_PUBLIC_` prefix. |
 | `QUOTE_API_URL` | Optional trusted JSON quote endpoint. The local quote collection remains the fallback. |
-| `RESEND_API_KEY` | Optional server-only Resend API key for contact-form delivery. |
-| `CONTACT_TO_EMAIL` | Destination address used by the contact route when Resend is configured. |
-| `CONTACT_FROM_EMAIL` | Verified Resend sender, for example `Portfolio <hello@your-domain.com>`. |
+| `RESEND_API_KEY` | Server-only Resend API key that enables automatic delivery to `abramishvililasha05@gmail.com`. |
+| `CONTACT_FROM_EMAIL` | Optional sender override. Defaults to `Lasha Abramishvili <onboarding@resend.dev>`; use a verified domain sender when available. |
 
 Do not commit `.env.local` or any real secret.
 
@@ -90,13 +89,15 @@ Expected remote payloads may use one of these text fields: `text`, `quote`, `con
 
 Without email credentials, the form validates the message and returns a pre-filled `mailto:` draft. That mode works without exposing a service secret.
 
-To enable direct delivery with Resend:
+To enable direct delivery to `abramishvililasha05@gmail.com` with Resend:
 
-1. Verify a sending domain in Resend.
-2. Add `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, and `CONTACT_FROM_EMAIL` to the hosting provider.
-3. Redeploy.
+1. Create a Resend account using `abramishvililasha05@gmail.com`.
+2. Create an API key in the Resend dashboard.
+3. Add `RESEND_API_KEY` to `.env.local` for local testing and to the hosting provider for production.
+4. Keep the default `onboarding@resend.dev` sender while testing. It can send only to the email associated with the Resend account, which is the intended portfolio destination.
+5. Redeploy and submit one real test message. For a custom sender such as `hello@your-domain.com`, verify that domain in Resend and set `CONTACT_FROM_EMAIL`.
 
-The implementation intentionally does not expose the Resend key to client code. If you prefer Formspree or Web3Forms, replace only the server logic in `app/api/contact/route.ts` and preserve the current response shape.
+The destination is read from the central profile data and the Resend key never reaches client code. If delivery fails or no key is configured, the form safely offers a pre-filled email draft instead.
 
 ## Editing portfolio content
 

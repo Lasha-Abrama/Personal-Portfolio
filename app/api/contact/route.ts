@@ -44,20 +44,26 @@ export async function POST(request: Request) {
   }
 
   const resendKey = process.env.RESEND_API_KEY;
-  const destination = process.env.CONTACT_TO_EMAIL;
-  const sender = process.env.CONTACT_FROM_EMAIL || "Portfolio <onboarding@resend.dev>";
+  const destination = profile.email;
+  const sender = process.env.CONTACT_FROM_EMAIL || "Lasha Abramishvili <onboarding@resend.dev>";
 
-  if (resendKey && destination) {
+  if (resendKey) {
     try {
+      const idempotencyKey = await buildIdempotencyKey(email, subject, message, payload.startedAt);
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
-        headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        },
         body: JSON.stringify({
           from: sender,
           to: [destination],
           reply_to: email,
           subject: `[Portfolio] ${subject}`,
           html: `<h2>New portfolio message</h2><p><strong>From:</strong> ${escapeHtml(name)} (${escapeHtml(email)})</p><p><strong>Subject:</strong> ${escapeHtml(subject)}</p><p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>`,
+          text: `New portfolio message\n\nFrom: ${name} (${email})\nSubject: ${subject}\n\n${message}`,
         }),
         signal: AbortSignal.timeout(7000),
       });
@@ -72,6 +78,13 @@ export async function POST(request: Request) {
     message: "The secure email service is not configured yet. Your message is ready in a pre-filled email draft.",
     mailto: buildMailto(email, name, subject, message),
   });
+}
+
+async function buildIdempotencyKey(email: string, subject: string, message: string, startedAt: unknown) {
+  const source = `${email}|${subject}|${message}|${typeof startedAt === "number" ? startedAt : "unknown"}`;
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(source));
+  const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `portfolio-contact/${hash}`;
 }
 
 function buildMailto(email: string, name: string, subject: string, message: string) {
