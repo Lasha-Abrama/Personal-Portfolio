@@ -19,21 +19,19 @@ A complete, multi-page portfolio for Lasha Abramishvili, an Information Technolo
 
 ## Technology
 
-- Next.js 16 / vinext
+- Next.js 16
 - React 19
 - TypeScript
 - Tailwind CSS 4 (available through the global stylesheet pipeline)
 - Framer Motion
 - Lucide React
-- Cloudflare Workers-compatible Vite output through Sites
-
-The source also includes dedicated `dev:next`, `build:next`, and `start:next` scripts for a standard Vercel deployment. `vercel.json` selects the native Next.js build automatically.
+- Standard Next.js production output for Vercel or another Node-compatible host
 
 ## Local setup
 
 Requirements:
 
-- Node.js 22.13 or newer
+- Node.js 20.9 or newer
 - npm
 
 ```bash
@@ -50,7 +48,6 @@ Quality checks:
 npm run lint
 ./node_modules/.bin/tsc --noEmit
 npm run build
-npm run build:next
 npm test
 ```
 
@@ -161,12 +158,12 @@ types/                Shared TypeScript types
 
 1. Push the project to a Git repository.
 2. Import the repository in Vercel.
-3. Confirm the framework as Next.js. The included `vercel.json` runs `npm run build:next`; no manual build override is normally needed.
+3. Confirm the framework as Next.js. Vercel will automatically use `npm run build`.
 4. Add `NEXT_PUBLIC_SITE_URL` with the final production URL.
 5. Add optional GitHub and Resend variables in Project Settings - Environment Variables.
 6. Deploy, then test `/`, `/projects`, `/about`, `/contact`, `/sitemap.xml`, the CV download, the contact fallback, and social previews.
 
-The bundled Sites setup already produces Cloudflare Worker-compatible output through `npm run build`. The source does not require a database or object storage.
+The project uses the standard Next.js build and does not contain a hosting-provider sign-in gate. It does not require a database or object storage.
 
 ## Known limitations and review items
 
